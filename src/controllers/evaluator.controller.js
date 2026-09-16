@@ -124,7 +124,7 @@ export async function submitEvaluation(req, res) {
 }
 
 export async function getEvidenceForEvaluation(req, res) {
-  const evaluation = await Evaluation.findOne({ _id: req.params.id, evaluatorId: req.user._id }).populate('submissionId');
+  const evaluation = await Evaluation.findOne({ submissionId: req.params.submissionId, evaluatorId: req.user._id }).populate('submissionId');
   if (!evaluation) return jsonError(res, 'Evaluation not found or not assigned to you', 404);
 
   const submission = await Submission.findById(evaluation.submissionId);

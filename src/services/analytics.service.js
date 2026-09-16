@@ -38,7 +38,7 @@ export async function getEventAnalytics(eventId) {
         memberCount: { $size: '$members' },
         tasks: { $size: '$submissions' },
         submittedTasks: { $size: '$submissions' },
-        evaluatedTasks: 0,
+        evaluatedTasks: { $literal: 0 },
         completionPercentage: { $ifNull: [{ $multiply: [{ $divide: [{ $size: '$submissions' }, 1] }, 100] }, 0] },
         score: { $sum: '$submissions.totalScore' },
         status: '$status',

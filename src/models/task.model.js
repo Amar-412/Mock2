@@ -34,17 +34,15 @@ const taskSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-taskSchema.pre('validate', function validateMaxScore(next) {
+taskSchema.pre('validate', function validateMaxScore() {
   if (!Array.isArray(this.evaluationMetrics)) {
-    return next();
+    return;
   }
 
   const totalMetricsScore = this.evaluationMetrics.reduce((sum, metric) => sum + (Number(metric.maxScore) || 0), 0);
   if (this.maxScore && totalMetricsScore !== this.maxScore) {
     this.invalidate('maxScore', 'Sum of metric.maxScore must equal task.maxScore');
   }
-
-  next();
 });
 
 const Task = mongoose.model('Task', taskSchema);
