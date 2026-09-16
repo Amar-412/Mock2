@@ -16,6 +16,7 @@ export async function ensureStorageDirectories() {
   await fs.mkdir(config.STORAGE_ROOT, { recursive: true });
   await fs.mkdir(config.SUBMISSIONS_STORAGE, { recursive: true });
   await fs.mkdir(config.EVENT_DOCUMENT_STORAGE, { recursive: true });
+  await fs.mkdir(config.CHAT_STORAGE, { recursive: true });
 }
 
 export function getSubmissionStorageDir(eventId, teamId, taskId, submissionId) {
@@ -24,6 +25,10 @@ export function getSubmissionStorageDir(eventId, teamId, taskId, submissionId) {
 
 export function getEventDocumentStorageDir(eventId) {
   return path.join(config.EVENT_DOCUMENT_STORAGE, String(eventId));
+}
+
+export function getChatStorageDir(eventId, teamId, messageId) {
+  return path.join(config.CHAT_STORAGE, String(eventId), String(teamId), String(messageId));
 }
 
 export async function createSubmissionStorageDirectory(eventId, teamId, taskId, submissionId) {
@@ -38,6 +43,12 @@ export async function createEventDocumentDirectory(eventId) {
   return directory;
 }
 
+export async function createChatStorageDirectory(eventId, teamId, messageId) {
+  const directory = getChatStorageDir(eventId, teamId, messageId);
+  await fs.mkdir(directory, { recursive: true });
+  return directory;
+}
+
 export async function saveUploadedFile(file, { eventId, teamId, taskId, submissionId, type = 'submission' }) {
   if (!file || !file.originalname) {
     throw new Error('No file provided');
@@ -47,6 +58,20 @@ export async function saveUploadedFile(file, { eventId, teamId, taskId, submissi
 
   if (type === 'event-document') {
     const directory = await createEventDocumentDirectory(eventId);
+    const filePath = path.join(directory, safeName);
+    await fs.writeFile(filePath, file.buffer || '');
+    return {
+      path: filePath,
+      filename: safeName,
+      mimeType: file.mimetype || 'application/octet-stream',
+      size: file.size || 0,
+    };
+  }
+
+  if (type === 'chat') {
+    // messageId is required for chat
+    const { messageId } = arguments[1];
+    const directory = await createChatStorageDirectory(eventId, teamId, messageId);
     const filePath = path.join(directory, safeName);
     await fs.writeFile(filePath, file.buffer || '');
     return {

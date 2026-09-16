@@ -20,9 +20,11 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.0",
     "nodemailer": "^8.0.11",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "socket.io-client": "^4.8.3",
     "supertest": "^7.2.2"
   }
 }

@@ -36,6 +36,7 @@ const config = {
     STORAGE_ROOT: process.env.STORAGE_ROOT || "./storage",
     SUBMISSIONS_STORAGE: process.env.SUBMISSIONS_STORAGE || "./storage/submissions",
     EVENT_DOCUMENT_STORAGE: process.env.EVENT_DOCUMENT_STORAGE || "./storage/event-documents",
+    CHAT_STORAGE: process.env.CHAT_STORAGE || "./storage/chat",
     MAX_IMAGE_SIZE_MB: Number(process.env.MAX_IMAGE_SIZE_MB || 5),
     MAX_VIDEO_SIZE_MB: Number(process.env.MAX_VIDEO_SIZE_MB || 20),
     MAX_DOCUMENT_SIZE_MB: Number(process.env.MAX_DOCUMENT_SIZE_MB || 10)
