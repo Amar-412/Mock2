@@ -4,6 +4,7 @@ import { requireTeamMember, requireTeamLead } from '../middleware/role.middlewar
 import * as teamController from '../controllers/team.controller.js';
 import * as invitationController from '../controllers/invitation.controller.js';
 import * as submissionController from '../controllers/submission.controller.js';
+import * as challengeController from '../controllers/challenge.controller.js';
 
 const router = Router();
 
@@ -14,6 +15,23 @@ router.use(authenticate);
 router.get('/:teamId', requireTeamMember('teamId'), teamController.getTeam);
 router.get('/:teamId/members', requireTeamMember('teamId'), teamController.getTeamMembers);
 router.get('/:teamId/submissions', requireTeamMember('teamId'), submissionController.getTeamSubmissions);
+
+// ─── Team Challenge Participation ────────────────────────────────────────────
+router.post(
+  '/:teamId/challenges',
+  requireTeamMember('teamId'),
+  challengeController.joinTeamChallenge
+);
+router.get(
+  '/:teamId/challenges',
+  requireTeamMember('teamId'),
+  challengeController.getTeamChallenges
+);
+router.delete(
+  '/:teamId/challenges/:challengeId',
+  requireTeamLead('teamId'),
+  challengeController.leaveTeamChallenge
+);
 
 // ─── Team Lead Operations ────────────────────────────────────────────────────
 router.post(

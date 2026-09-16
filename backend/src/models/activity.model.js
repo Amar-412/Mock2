@@ -29,6 +29,7 @@ const activitySchema = new mongoose.Schema(
       type: String,
       enum: [
         'TEAM_FINALIZED',
+        'CHALLENGE_JOINED',
         'SUBMISSION_CREATED',
         'SUBMISSION_SUBMITTED',
         'CHALLENGE_COMPLETED',
