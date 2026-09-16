@@ -98,7 +98,7 @@ export const createSubmission = asyncHandler(async (req, res) => {
   }
 
   const submission = await submissionModel.create({
-    clientSubmissionId: clientSubmissionId ? clientSubmissionId.trim() : null,
+    clientSubmissionId: clientSubmissionId && clientSubmissionId.trim() ? clientSubmissionId.trim() : undefined,
     teamId: team._id,
     eventId: event._id,
     challengeId: new mongoose.Types.ObjectId(challengeId),
@@ -378,8 +378,21 @@ export const syncSubmission = asyncHandler(async (req, res) => {
   let submission = await submissionModel.findOne({ clientSubmissionId: cleanClientId });
 
   if (submission) {
+    // Security check: verify authenticated user has access to the submission's team
+    const existingTeam = await teamModel.findById(submission.teamId);
+    if (!existingTeam) {
+      throw new AppError('Associated team not found', 404);
+    }
+    verifyTeamAccess(existingTeam, req.user);
+
     // If client requested final submit on retry and it was still DRAFT
     if (isFinalSubmit && submission.status === 'DRAFT') {
+      const hasReflection = submission.reflection && submission.reflection.trim().length > 0;
+      const evidenceCount = await evidenceModel.countDocuments({ submissionId: submission._id });
+      if (!hasReflection && evidenceCount === 0) {
+        throw new AppError('Cannot submit an empty submission without reflection or evidence', 400);
+      }
+
       submission.status = 'SUBMITTED';
       submission.submittedAt = new Date();
       await submission.save();
@@ -389,6 +402,7 @@ export const syncSubmission = asyncHandler(async (req, res) => {
         teamId: submission.teamId,
         actorId: req.user._id,
         type: 'SUBMISSION_SUBMITTED',
+        visibility: 'PUBLIC',
         metadata: { submissionId: submission._id, synced: true },
       });
     }
@@ -405,11 +419,21 @@ export const syncSubmission = asyncHandler(async (req, res) => {
     throw new AppError('teamId, eventId, and challengeId are required for new sync', 400);
   }
 
+  if (!mongoose.Types.ObjectId.isValid(teamId) ||
+      !mongoose.Types.ObjectId.isValid(eventId) ||
+      !mongoose.Types.ObjectId.isValid(challengeId)) {
+    throw new AppError('Invalid ID format for teamId, eventId, or challengeId', 400);
+  }
+
   const team = await teamModel.findById(teamId);
   if (!team) {
     throw new AppError('Team not found', 404);
   }
   verifyTeamAccess(team, req.user);
+
+  if (team.status === 'DISBANDED') {
+    throw new AppError('Cannot create a submission for a disbanded team', 400);
+  }
 
   // Verify challenge and team participation if challenge exists in catalog
   const challenge = await challengeModel.findById(challengeId);
@@ -425,6 +449,20 @@ export const syncSubmission = asyncHandler(async (req, res) => {
     if (!participation) {
       throw new AppError('Team is not participating in this challenge. Please join the challenge first.', 400);
     }
+  }
+
+  // Prevent duplicate submissions for the same challenge
+  const existingChallengeSub = await submissionModel.findOne({
+    teamId: team._id,
+    challengeId: new mongoose.Types.ObjectId(challengeId),
+    status: { $ne: 'REJECTED' },
+  });
+  if (existingChallengeSub) {
+    throw new AppError('An active submission already exists for this challenge', 409);
+  }
+
+  if (isFinalSubmit && (!reflection || !reflection.trim())) {
+    throw new AppError('Cannot submit an empty submission without reflection or evidence', 400);
   }
 
   try {

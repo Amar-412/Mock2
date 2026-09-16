@@ -11,8 +11,6 @@ const submissionSchema = new mongoose.Schema(
     clientSubmissionId: {
       type: String,
       trim: true,
-      sparse: true,
-      index: true,
     },
     teamId: {
       type: mongoose.Schema.Types.ObjectId,
