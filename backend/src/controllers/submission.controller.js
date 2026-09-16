@@ -7,6 +7,7 @@ import challengeModel from '../models/challenge.model.js';
 import teamChallengeModel from '../models/teamChallenge.model.js';
 import storageService from '../services/storage.service.js';
 import activityService from '../services/activity.service.js';
+import notificationService from '../services/notification.service.js';
 import { resolveEvidenceType, sanitizeFilename } from '../middleware/upload.middleware.js';
 import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -315,10 +316,29 @@ export const submitSubmission = asyncHandler(async (req, res) => {
     teamId: updatedSubmission.teamId,
     actorId: req.user._id,
     type: 'SUBMISSION_SUBMITTED',
+    visibility: 'PUBLIC',
     metadata: {
       submissionId: updatedSubmission._id,
       challengeId: updatedSubmission.challengeId,
       evidenceCount,
+    },
+  });
+
+  // Notify team members about submission
+  const memberRecipients = team.members
+    .filter((m) => m.status === 'ACTIVE')
+    .map((m) => m.user);
+
+  await notificationService.createBulkNotifications({
+    recipients: memberRecipients,
+    senderId: req.user._id,
+    type: 'SUBMISSION_SUBMITTED',
+    title: 'Submission Submitted',
+    message: `A submission was successfully submitted for team "${team.name}".`,
+    data: {
+      teamId: team._id,
+      submissionId: updatedSubmission._id,
+      challengeId: updatedSubmission.challengeId,
     },
   });
 
@@ -429,8 +449,28 @@ export const syncSubmission = asyncHandler(async (req, res) => {
       teamId: team._id,
       actorId: req.user._id,
       type: activityType,
+      visibility: isFinalSubmit ? 'PUBLIC' : 'TEAM',
       metadata: { submissionId: submission._id, clientSubmissionId: cleanClientId },
     });
+
+    if (isFinalSubmit) {
+      const memberRecipients = team.members
+        .filter((m) => m.status === 'ACTIVE')
+        .map((m) => m.user);
+
+      await notificationService.createBulkNotifications({
+        recipients: memberRecipients,
+        senderId: req.user._id,
+        type: 'SUBMISSION_SUBMITTED',
+        title: 'Submission Submitted',
+        message: `A submission was successfully submitted for team "${team.name}".`,
+        data: {
+          teamId: team._id,
+          submissionId: submission._id,
+          challengeId: submission.challengeId,
+        },
+      });
+    }
 
     return sendCreated(res, {
       message: 'Submission synced and created successfully',

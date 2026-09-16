@@ -5,6 +5,7 @@ import teamModel from '../models/team.model.js';
 import eventModel from '../models/event.model.js';
 import submissionModel from '../models/submission.model.js';
 import activityService from '../services/activity.service.js';
+import notificationService from '../services/notification.service.js';
 import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess, sendCreated } from '../utils/apiResponse.js';
@@ -262,7 +263,7 @@ export const joinTeamChallenge = asyncHandler(async (req, res) => {
     joinedAt: new Date(),
   });
 
-  // 9. Record domain activity
+  // 9. Record domain activity (public milestone)
   await activityService.create({
     eventId: team.eventId,
     teamId: team._id,
@@ -273,7 +274,21 @@ export const joinTeamChallenge = asyncHandler(async (req, res) => {
       challengeTitle: challenge.title,
       track: challenge.track,
     },
+    visibility: 'PUBLIC',
   });
+
+  // Notify team members about joining the challenge
+  const memberNotifications = team.members
+    .filter((m) => m.status === 'ACTIVE' && m.user.toString() !== req.user._id.toString())
+    .map((m) => ({
+      recipient: m.user,
+      sender: req.user._id,
+      type: 'CHALLENGE_JOINED',
+      title: 'Joined New Challenge',
+      message: `Your team joined the challenge '${challenge.title}' (${challenge.track} track).`,
+      data: { teamId: team._id, challengeId: challenge._id },
+    }));
+  await notificationService.createBulkNotifications(memberNotifications);
 
   return sendCreated(res, {
     message: 'Team successfully joined the challenge',

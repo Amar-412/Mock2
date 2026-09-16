@@ -7,6 +7,7 @@ import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess, sendCreated } from '../utils/apiResponse.js';
 import activityService from '../services/activity.service.js';
+import notificationService from '../services/notification.service.js';
 
 /**
  * Generate a random uppercase alphanumeric join code (e.g., YW-8K2D).
@@ -218,7 +219,7 @@ export const finalizeTeam = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  // Record domain activity event
+  // Record domain activity event (public milestone)
   await activityService.create({
     eventId: updatedTeam.eventId,
     teamId: updatedTeam._id,
@@ -228,7 +229,21 @@ export const finalizeTeam = asyncHandler(async (req, res) => {
       teamName: updatedTeam.name,
       membersCount: updatedTeam.members.length,
     },
+    visibility: 'PUBLIC',
   });
+
+  // Notify active members that the team is finalized
+  const memberNotifications = updatedTeam.members
+    .filter((m) => m.status === 'ACTIVE' && m.user.toString() !== req.user._id.toString())
+    .map((m) => ({
+      recipient: m.user,
+      sender: req.user._id,
+      type: 'TEAM_FINALIZED',
+      title: 'Team Roster Finalized',
+      message: `Your team '${updatedTeam.name}' roster has been officially finalized by the team lead.`,
+      data: { teamId: updatedTeam._id },
+    }));
+  await notificationService.createBulkNotifications(memberNotifications);
 
   return sendSuccess(res, {
     message: 'Team roster successfully finalized',
@@ -288,6 +303,16 @@ export const reassignLead = asyncHandler(async (req, res) => {
       new: true,
     }
   );
+
+  // Notify newly assigned lead
+  await notificationService.createNotification({
+    recipient: newLeadId,
+    sender: req.user._id,
+    type: 'LEAD_REASSIGNED',
+    title: 'Promoted to Team Lead',
+    message: `You have been reassigned as the Team Lead for '${team.name}'.`,
+    data: { teamId: team._id },
+  });
 
   return sendSuccess(res, {
     message: 'Team lead reassigned successfully',
