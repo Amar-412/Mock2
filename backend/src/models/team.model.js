@@ -60,7 +60,6 @@ const teamSchema = new mongoose.Schema(
       type: String,
       uppercase: true,
       trim: true,
-      sparse: true,
     },
     members: {
       type: [memberSubSchema],

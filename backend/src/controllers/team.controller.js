@@ -323,10 +323,51 @@ export const reassignLead = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * POST /api/teams/:teamId/disband
+ * Disband an existing team.
+ * - Team Lead only
+ * - Atomic: status transitions to DISBANDED
+ * - Notifies all active members
+ */
+export const disbandTeam = asyncHandler(async (req, res) => {
+  const team = req.team;
+
+  if (team.status === 'DISBANDED') {
+    throw new AppError('Team is already disbanded', 400);
+  }
+
+  const updatedTeam = await teamModel.findByIdAndUpdate(
+    team._id,
+    { $set: { status: 'DISBANDED' } },
+    { new: true }
+  );
+
+  // Notify active members
+  const memberRecipients = team.members
+    .filter((m) => m.status === 'ACTIVE' && m.user.toString() !== req.user._id.toString())
+    .map((m) => m.user);
+
+  await notificationService.createBulkNotifications({
+    recipients: memberRecipients,
+    senderId: req.user._id,
+    type: 'TEAM_DISBANDED',
+    title: 'Team Disbanded',
+    message: `Team '${team.name}' has been disbanded by the team lead.`,
+    data: { teamId: team._id },
+  });
+
+  return sendSuccess(res, {
+    message: 'Team has been disbanded successfully',
+    data: { teamId: updatedTeam._id, status: updatedTeam.status },
+  });
+});
+
 export default {
   createTeamForEvent,
   getTeam,
   getTeamMembers,
   finalizeTeam,
   reassignLead,
+  disbandTeam,
 };

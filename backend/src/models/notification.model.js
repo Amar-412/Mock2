@@ -27,6 +27,7 @@ const notificationSchema = new mongoose.Schema(
         'LEAD_REASSIGNED',
         'CHALLENGE_JOINED',
         'SUBMISSION_SUBMITTED',
+        'TEAM_DISBANDED',
         'SYSTEM',
       ],
       required: true,

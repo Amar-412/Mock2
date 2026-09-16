@@ -49,6 +49,11 @@ router.post(
   requireTeamLead('teamId'),
   teamController.finalizeTeam
 );
+router.post(
+  '/:teamId/disband',
+  requireTeamLead('teamId'),
+  teamController.disbandTeam
+);
 router.patch(
   '/:teamId/lead',
   requireTeamLead('teamId'),
