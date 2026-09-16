@@ -5,11 +5,16 @@ import * as teamController from '../controllers/team.controller.js';
 import * as invitationController from '../controllers/invitation.controller.js';
 import * as submissionController from '../controllers/submission.controller.js';
 import * as challengeController from '../controllers/challenge.controller.js';
+import * as dashboardController from '../controllers/dashboard.controller.js';
 
 const router = Router();
 
 // All team routes require an authenticated user
 router.use(authenticate);
+
+// ─── Team Dashboard & Activity (Member-Authorized) ───────────────────────────
+router.get('/:teamId/dashboard', requireTeamMember('teamId'), dashboardController.getTeamDashboard);
+router.get('/:teamId/activity', requireTeamMember('teamId'), dashboardController.getTeamActivity);
 
 // ─── Team Details & Member Roster (Member-Authorized) ────────────────────────
 router.get('/:teamId', requireTeamMember('teamId'), teamController.getTeam);
