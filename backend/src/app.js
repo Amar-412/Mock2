@@ -8,6 +8,10 @@ import path from 'path';
 
 import config from './config/config.js';
 import authRouter from './routes/auth.routes.js';
+import teamRouter from './routes/team.routes.js';
+import eventRouter from './routes/event.routes.js';
+import invitationRouter from './routes/invitation.routes.js';
+import userRouter from './routes/user.routes.js';
 import errorMiddleware from './middleware/error.middleware.js';
 import AppError from './utils/AppError.js';
 
@@ -52,6 +56,10 @@ app.get('/api/health', (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
+app.use('/api/teams', teamRouter);
+app.use('/api/events', eventRouter);
+app.use('/api/invitations', invitationRouter);
+app.use('/api/users', userRouter);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
@@ -62,4 +70,3 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 export default app;
-
