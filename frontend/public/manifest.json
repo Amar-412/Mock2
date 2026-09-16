@@ -1,0 +1,17 @@
+{
+  "short_name": "YUWA",
+  "name": "YUWA Ecolympics — Sustainability Platform",
+  "description": "Youth-led university sustainability challenges and campus environmental impact.",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}
