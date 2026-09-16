@@ -25,6 +25,8 @@ const notificationSchema = new mongoose.Schema(
         'INVITATION_REJECTED',
         'TEAM_FINALIZED',
         'LEAD_REASSIGNED',
+        'CHALLENGE_JOINED',
+        'SUBMISSION_SUBMITTED',
         'SYSTEM',
       ],
       required: true,
@@ -46,11 +48,16 @@ const notificationSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    readAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
 notificationSchema.index({ recipient: 1, read: 1 });
+notificationSchema.index({ recipient: 1, createdAt: -1 });
 
 const notificationModel = mongoose.model('notifications', notificationSchema);
 export default notificationModel;
