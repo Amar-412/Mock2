@@ -6,6 +6,7 @@ import userModel from '../models/user.model.js';
 import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess, sendCreated } from '../utils/apiResponse.js';
+import activityService from '../services/activity.service.js';
 
 /**
  * Generate a random uppercase alphanumeric join code (e.g., YW-8K2D).
@@ -216,6 +217,18 @@ export const finalizeTeam = asyncHandler(async (req, res) => {
     },
     { new: true }
   );
+
+  // Record domain activity event
+  await activityService.create({
+    eventId: updatedTeam.eventId,
+    teamId: updatedTeam._id,
+    actorId: req.user._id,
+    type: 'TEAM_FINALIZED',
+    metadata: {
+      teamName: updatedTeam.name,
+      membersCount: updatedTeam.members.length,
+    },
+  });
 
   return sendSuccess(res, {
     message: 'Team roster successfully finalized',
