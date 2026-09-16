@@ -12,6 +12,7 @@ import teamRouter from './routes/team.routes.js';
 import eventRouter from './routes/event.routes.js';
 import invitationRouter from './routes/invitation.routes.js';
 import userRouter from './routes/user.routes.js';
+import submissionRouter from './routes/submission.routes.js';
 import errorMiddleware from './middleware/error.middleware.js';
 import AppError from './utils/AppError.js';
 
@@ -60,6 +61,7 @@ app.use('/api/teams', teamRouter);
 app.use('/api/events', eventRouter);
 app.use('/api/invitations', invitationRouter);
 app.use('/api/users', userRouter);
+app.use('/api/submissions', submissionRouter);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
