@@ -3,6 +3,8 @@ import submissionModel from '../models/submission.model.js';
 import evidenceModel from '../models/evidence.model.js';
 import teamModel from '../models/team.model.js';
 import eventModel from '../models/event.model.js';
+import challengeModel from '../models/challenge.model.js';
+import teamChallengeModel from '../models/teamChallenge.model.js';
 import storageService from '../services/storage.service.js';
 import activityService from '../services/activity.service.js';
 import { resolveEvidenceType, sanitizeFilename } from '../middleware/upload.middleware.js';
@@ -65,6 +67,22 @@ export const createSubmission = asyncHandler(async (req, res) => {
   const event = await eventModel.findById(eventId);
   if (!event || !event.isActive) {
     throw new AppError('Event not found or inactive', 404);
+  }
+
+  // Verify challenge and team participation if challenge exists in catalog
+  const challenge = await challengeModel.findById(challengeId);
+  if (challenge) {
+    if (challenge.eventId.toString() !== team.eventId.toString()) {
+      throw new AppError('Challenge does not belong to the event associated with this team', 400);
+    }
+    const participation = await teamChallengeModel.findOne({
+      teamId: team._id,
+      challengeId: challenge._id,
+      status: { $in: ['JOINED', 'ACTIVE'] },
+    });
+    if (!participation) {
+      throw new AppError('Team is not participating in this challenge. Please join the challenge first.', 400);
+    }
   }
 
   // Check if team already has a non-rejected submission for this challenge
@@ -372,6 +390,22 @@ export const syncSubmission = asyncHandler(async (req, res) => {
     throw new AppError('Team not found', 404);
   }
   verifyTeamAccess(team, req.user);
+
+  // Verify challenge and team participation if challenge exists in catalog
+  const challenge = await challengeModel.findById(challengeId);
+  if (challenge) {
+    if (challenge.eventId.toString() !== team.eventId.toString()) {
+      throw new AppError('Challenge does not belong to the event associated with this team', 400);
+    }
+    const participation = await teamChallengeModel.findOne({
+      teamId: team._id,
+      challengeId: challenge._id,
+      status: { $in: ['JOINED', 'ACTIVE'] },
+    });
+    if (!participation) {
+      throw new AppError('Team is not participating in this challenge. Please join the challenge first.', 400);
+    }
+  }
 
   try {
     const status = isFinalSubmit ? 'SUBMITTED' : 'DRAFT';
