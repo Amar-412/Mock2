@@ -56,6 +56,32 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
+      default: '',
+    },
+    department: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    yearOfStudy: {
+      type: Number,
+      min: 1,
+      max: 6,
+      default: null,
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    socialLinks: {
+      linkedin: { type: String, trim: true, default: '' },
+      github: { type: String, trim: true, default: '' },
+      instagram: { type: String, trim: true, default: '' },
+    },
     lastLoginAt: {
       type: Date,
       default: null,

@@ -1,4 +1,5 @@
 import userModel from '../models/user.model.js';
+import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/apiResponse.js';
 
@@ -63,4 +64,96 @@ export const searchStudents = asyncHandler(async (req, res) => {
   });
 });
 
-export default { searchStudents };
+/**
+ * GET /api/users/me
+ * Retrieve the current authenticated student's full profile.
+ */
+export const getProfile = asyncHandler(async (req, res) => {
+  const user = await userModel
+    .findById(req.user._id)
+    .populate('college', 'name code city state')
+    .select('-password -__v');
+
+  if (!user) {
+    throw new AppError('User profile not found', 404);
+  }
+
+  return sendSuccess(res, {
+    message: 'Profile retrieved successfully',
+    data: { user },
+  });
+});
+
+/**
+ * PATCH /api/users/me
+ * Update the current authenticated student's profile.
+ * Strictly prevents modifying password, role, verified, or isActive.
+ */
+export const updateProfile = asyncHandler(async (req, res) => {
+  const {
+    name,
+    username,
+    phone,
+    college,
+    avatar,
+    bio,
+    department,
+    yearOfStudy,
+    skills,
+    socialLinks,
+  } = req.body;
+
+  const user = await userModel.findById(req.user._id);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  // Username validation if changing
+  if (username !== undefined) {
+    const cleanUsername = username ? username.trim() : null;
+    if (cleanUsername && cleanUsername !== user.username) {
+      const existingUser = await userModel.findOne({
+        username: cleanUsername,
+        _id: { $ne: user._id },
+      });
+      if (existingUser) {
+        throw new AppError(`Username '${cleanUsername}' is already taken`, 409);
+      }
+      user.username = cleanUsername;
+    }
+  }
+
+  if (name !== undefined) user.name = name ? name.trim() : user.name;
+  if (phone !== undefined) user.phone = phone ? phone.trim() : user.phone;
+  if (college !== undefined) user.college = college || null;
+  if (avatar !== undefined) user.avatar = avatar;
+  if (bio !== undefined) user.bio = bio ? bio.trim() : '';
+  if (department !== undefined) user.department = department ? department.trim() : '';
+  if (yearOfStudy !== undefined) user.yearOfStudy = yearOfStudy;
+  if (skills !== undefined && Array.isArray(skills)) user.skills = skills;
+  if (socialLinks !== undefined && typeof socialLinks === 'object' && socialLinks !== null) {
+    user.socialLinks = {
+      linkedin: socialLinks.linkedin !== undefined ? socialLinks.linkedin : user.socialLinks?.linkedin || '',
+      github: socialLinks.github !== undefined ? socialLinks.github : user.socialLinks?.github || '',
+      instagram: socialLinks.instagram !== undefined ? socialLinks.instagram : user.socialLinks?.instagram || '',
+    };
+  }
+
+  await user.save();
+
+  const updatedUser = await userModel
+    .findById(user._id)
+    .populate('college', 'name code city state')
+    .select('-password -__v');
+
+  return sendSuccess(res, {
+    message: 'Profile updated successfully',
+    data: { user: updatedUser },
+  });
+});
+
+export default {
+  searchStudents,
+  getProfile,
+  updateProfile,
+};
