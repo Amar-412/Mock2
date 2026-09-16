@@ -56,6 +56,7 @@ const activitySchema = new mongoose.Schema(
 // Indexes for timeline feeds
 activitySchema.index({ eventId: 1, createdAt: -1 });
 activitySchema.index({ teamId: 1, createdAt: -1 });
+activitySchema.index({ visibility: 1, createdAt: -1 });
 
 const activityModel = mongoose.model('activities', activitySchema);
 export default activityModel;
