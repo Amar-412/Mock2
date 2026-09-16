@@ -3,8 +3,9 @@ import config from '../config/config.js';
 
 let transporter = null;
 
-// Initialize transport only if Google OAuth credentials exist
+// Initialize transport only if not in test environment and Google OAuth credentials exist
 if (
+  process.env.NODE_ENV !== 'test' &&
   config.GOOGLE_USER &&
   config.GOOGLE_CLIENT_ID &&
   config.GOOGLE_CLIENT_SECRET &&

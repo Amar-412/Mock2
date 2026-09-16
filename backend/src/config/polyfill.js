@@ -4,6 +4,11 @@
  */
 import crypto from 'node:crypto';
 
+// Default NODE_ENV to test when imported by test runner
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'test';
+}
+
 if (!crypto.getRandomValues && crypto.webcrypto) {
   crypto.getRandomValues = (buffer) => crypto.webcrypto.getRandomValues(buffer);
 }
