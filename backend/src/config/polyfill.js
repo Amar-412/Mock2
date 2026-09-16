@@ -12,11 +12,19 @@ if (!process.env.NODE_ENV) {
 if (!crypto.getRandomValues && crypto.webcrypto) {
   crypto.getRandomValues = (buffer) => crypto.webcrypto.getRandomValues(buffer);
 }
+if (!crypto.subtle && crypto.webcrypto?.subtle) {
+  crypto.subtle = crypto.webcrypto.subtle;
+}
 
 if (!globalThis.crypto) {
-  globalThis.crypto = crypto;
-} else if (!globalThis.crypto.getRandomValues && crypto.webcrypto) {
-  globalThis.crypto.getRandomValues = (buffer) => crypto.webcrypto.getRandomValues(buffer);
+  globalThis.crypto = crypto.webcrypto || crypto;
+} else {
+  if (!globalThis.crypto.getRandomValues && crypto.webcrypto) {
+    globalThis.crypto.getRandomValues = (buffer) => crypto.webcrypto.getRandomValues(buffer);
+  }
+  if (!globalThis.crypto.subtle && crypto.webcrypto?.subtle) {
+    globalThis.crypto.subtle = crypto.webcrypto.subtle;
+  }
 }
 
 export default crypto;

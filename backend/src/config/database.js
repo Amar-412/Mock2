@@ -7,8 +7,11 @@ async function connectDB() {
       serverSelectionTimeoutMS: 5000,
     });
     if (config.NODE_ENV !== 'test') {
-      console.log(`Connected to DB: ${conn.connection.host}`);
+      const isAtlas = conn.connection.host.includes('mongodb.net');
+      console.log(`Connected to DB Host: ${conn.connection.host} (${isAtlas ? 'MongoDB Atlas' : 'Local/Self-hosted'})`);
+      console.log(`Database Name: ${conn.connection.name}`);
     }
+    return conn;
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);
     process.exit(1);
