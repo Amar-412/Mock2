@@ -20,12 +20,14 @@ ensureStorageDirectories().catch((error) => {
 });
 
 import chatRouter from './routes/chat.routes.js';
+import aiRouter from './routes/ai.routes.js';
 
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/evaluator', evaluatorRouter);
 app.use('/api/student', studentRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/ai', aiRouter);
 app.use('/api', submissionRouter);
 
 app.use((error, req, res, next) => {

@@ -39,7 +39,8 @@ const config = {
     CHAT_STORAGE: process.env.CHAT_STORAGE || "./storage/chat",
     MAX_IMAGE_SIZE_MB: Number(process.env.MAX_IMAGE_SIZE_MB || 5),
     MAX_VIDEO_SIZE_MB: Number(process.env.MAX_VIDEO_SIZE_MB || 20),
-    MAX_DOCUMENT_SIZE_MB: Number(process.env.MAX_DOCUMENT_SIZE_MB || 10)
+    MAX_DOCUMENT_SIZE_MB: Number(process.env.MAX_DOCUMENT_SIZE_MB || 10),
+    AI_SERVICE_URL: process.env.AI_SERVICE_URL || "http://127.0.0.1:8001"
 };
 
 export default config;
