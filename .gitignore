@@ -1,4 +1,32 @@
-/.env
+# Dependencies
+node_modules/
 /node_modules
+
+# Environment variables & secrets (CRITICAL: NEVER COMMIT)
+.env
+/.env
+.env.local
+.env.*.local
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Runtime and local storage
+uploads/
+storage/
 /storage/
+logs/
+*.log
+
+# Coverage
 coverage/
+
+# Scratch and build archives
+target/
+.archive_future_phases/
+
+# External template repository reference
+template/
