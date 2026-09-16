@@ -25,7 +25,7 @@ const eventSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['UPCOMING', 'REGISTRATION_OPEN', 'ONGOING', 'COMPLETED'],
+      enum: ['UPCOMING', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'ONGOING', 'COMPLETED', 'ARCHIVED'],
       default: 'REGISTRATION_OPEN',
       index: true,
     },
@@ -53,6 +53,25 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    organizer: {
+      type: String,
+      trim: true,
+      default: 'YUWA Organization',
+    },
+    startDate: {
+      type: Date,
+      default: null,
+    },
+    endDate: {
+      type: Date,
+      default: null,
+    },
+    visibility: {
+      type: String,
+      enum: ['PUBLIC', 'COLLEGE_RESTRICTED', 'PRIVATE'],
+      default: 'PUBLIC',
+      index: true,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -60,6 +79,10 @@ const eventSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes
+eventSchema.index({ isActive: 1, status: 1 });
+eventSchema.index({ isActive: 1, visibility: 1 });
 
 const eventModel = mongoose.model('events', eventSchema);
 export default eventModel;
