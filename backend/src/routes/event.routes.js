@@ -17,5 +17,7 @@ router.post('/:eventId/challenges', authenticate, challengeController.createChal
 
 // ─── Team Registration for Event ─────────────────────────────────────────────
 router.post('/:eventId/teams', authenticate, teamController.createTeamForEvent);
+router.post('/:eventId/register', authenticate, eventController.registerForEvent);
+router.get('/:eventId/registration', authenticate, eventController.getEventRegistration);
 
 export default router;
