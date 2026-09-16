@@ -41,8 +41,8 @@ if (
  * Send transactional email with console fallback in development.
  */
 export const sendEmail = async (to, subject, text, html) => {
-  if (!transporter) {
-    if (config.NODE_ENV !== 'test') {
+  if (!transporter || process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV !== 'test' && config.NODE_ENV !== 'test') {
       console.log(`\n📨 [DEV EMAIL FALLBACK] To: ${to} | Subject: ${subject}`);
       console.log(`📨 Message: ${text}\n`);
     }
